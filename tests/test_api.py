@@ -222,6 +222,16 @@ class TestGetSiteId:
             await api_module._get_site_id(session, "token", "app-id")
 
     @pytest.mark.asyncio
+    async def test_site_directly_under_org_with_null_children(self, mock_session):
+        """Some accounts have no 'Istore home owner' level and children=null."""
+        session, resp = mock_session
+        self.make_response(resp, code=0, children=[
+            {"name": "48 Example 270L", "id": "L6uJpTfR", "children": None}
+        ])
+        result = await api_module._get_site_id(session, "token", "app-id")
+        assert result == "L6uJpTfR"
+
+    @pytest.mark.asyncio
     async def test_empty_children_raises(self, mock_session):
         session, resp = mock_session
         self.make_response(resp, code=0, children=[])

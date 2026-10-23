@@ -187,13 +187,20 @@ async def _get_site_id(
             error_code = body.get("code")
             raise IStoreApiError(f"asset tree failed: {body.get('message', f'code={error_code}')}")
 
-        for top_child in body["data"].get("children", []):
-            for mid_child in top_child.get("children", []):
+        top_children = body["data"].get("children") or []
+        for top_child in top_children:
+            for mid_child in top_child.get("children") or []:
                 if mid_child.get("name") == "Istore home owner":
-                    for leaf in mid_child.get("children", []):
+                    for leaf in mid_child.get("children") or []:
                         site_id = leaf.get("id")
                         if site_id:
                             return site_id
+        # Some accounts have no "Istore home owner" level: the site sits
+        # directly under the organisation node.
+        for top_child in top_children:
+            site_id = top_child.get("id")
+            if site_id:
+                return site_id
         raise IStoreApiError("Could not find site under 'Istore home owner'")
 
 
